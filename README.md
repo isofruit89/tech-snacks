@@ -1,6 +1,6 @@
 # Tech-Snack Mediathek
 
-Statische Video-Übersicht für GitHub Pages. Die Videos liegen bei TechSmith und werden per Embed eingebunden.
+Statische Video-Übersicht für GitHub Pages. 
 
 ## Dateien
 
