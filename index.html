@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tech-Snack Mediathek</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  /* ===== Branding: hier die exakten ifm-Werte eintragen ===== */
+  :root{
+    --brand:#ff6e00;        /* ifm-Orange (angenähert, ggf. exakten Wert eintragen) */
+    --brand-dark:#d95b00;
+    --ink:#2d3134;          /* Graphit: Text */
+    --muted:#6b7177;
+    --bg:#f2f2f2;
+    --card:#ffffff;
+    --line:#dedede;
+    --intern:#4a5258;
+    --radius:10px;
+    --font:"Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.45}
+  header{background:#fff;color:var(--ink);border-bottom:4px solid var(--brand)}
+  .bar{max-width:1180px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px}
+  .logo{height:42px;display:flex;align-items:center}
+  .logo img{height:42px;width:42px}
+  .logo .fallback{background:var(--brand);color:#fff;font-weight:800;padding:2px 10px;border-radius:4px;font-size:20px;letter-spacing:.5px}
+  .brandname{font-weight:700;font-size:20px}
+  .brandname span{color:var(--brand)}
+  .brandname{border-left:1px solid var(--line);padding-left:14px}
+  .spacer{flex:1}
+  .btn{border:0;border-radius:6px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--brand);color:var(--brand-dark)}
+  .btn-brand{background:var(--brand);color:#fff}
+  .btn-brand:hover{background:var(--brand-dark)}
+  .hero{max-width:1180px;margin:0 auto;padding:26px 20px 8px}
+  .hero h1{margin:0 0 4px;font-size:28px}
+  .hero p{margin:0;color:var(--muted)}
+  .controls{max-width:1180px;margin:0 auto;padding:16px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .search{flex:1 1 260px;padding:11px 14px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;cursor:pointer;font:inherit;font-size:14px}
+  .chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+  select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+  main{max-width:1180px;margin:0 auto;padding:4px 20px 40px}
+  .count{color:var(--muted);font-size:14px;margin:2px 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:transform .12s, box-shadow .12s}
+  .card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.08)}
+  .card:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+  .thumb{aspect-ratio:16/9;position:relative;background:linear-gradient(135deg,#3a3f43,#5a6066);display:flex;align-items:center;justify-content:center;color:#fff}
+  .thumb img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+  .thumb .play{width:54px;height:54px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;position:relative;z-index:1;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .thumb .play:after{content:"";border-left:16px solid #fff;border-top:10px solid transparent;border-bottom:10px solid transparent;margin-left:4px}
+  .thumb .dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.7);font-size:12px;padding:2px 6px;border-radius:4px;z-index:1}
+  .thumb .badges{position:absolute;left:8px;top:8px;display:flex;gap:5px;z-index:1}
+  .badge{font-size:11px;font-weight:700;padding:3px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.4px}
+  .b-new{background:var(--brand);color:#fff}
+  .b-int{background:var(--intern);color:#fff}
+  .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .meta{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+  .typ{color:var(--brand-dark);font-weight:700}
+  .card h3{margin:0;font-size:16px}
+  .card p{margin:0;font-size:14px;color:var(--muted)}
+  .tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+  .tag{font-size:12px;background:var(--bg);border-radius:4px;padding:2px 7px}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+  /* Modal */
+  .overlay{position:fixed;inset:0;background:rgba(15,20,25,.75);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .modal{background:#fff;border-radius:var(--radius);width:min(960px,100%);max-height:94vh;overflow:auto}
+  .player{aspect-ratio:16/9;background:#000;display:flex;align-items:center;justify-content:center;color:#ccc;text-align:center;padding:0}
+  .player iframe{width:100%;height:100%;border:0}
+  .mbody{padding:16px 20px 20px}
+  .mbody h2{margin:4px 0 6px}
+  .mrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .x{float:right;background:none;border:0;font-size:26px;cursor:pointer;line-height:1;color:var(--muted)}
+  .login{width:min(380px,100%);padding:22px}
+  .login h2{margin:0 0 6px}
+  .login input{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;font:inherit;margin:10px 0}
+  .err{color:#b3261e;font-size:14px;min-height:20px}
+  footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
+  @media (max-width:600px){.hero h1{font-size:23px}.brandname{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo"><img src="logo.png" alt="ifm" onerror="this.outerHTML='<span class=&quot;fallback&quot;>ifm</span>'"></div>
+    <div class="brandname">Tech-<span>Snack</span></div>
+    <div class="spacer"></div>
+    <button class="btn btn-ghost" id="loginBtn">Mitarbeiter-Login</button>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Tech-Snack – Wissen in 5 bis 7 Minuten</h1>
+  <p>Kurze Videos zu Produkten, Lösungen und Technologien. Einfach Thema wählen und loslegen.</p>
+</section>
+
+<section class="controls">
+  <input class="search" id="q" type="search" placeholder="Suchen: Titel, Thema, Produkt …" aria-label="Suche">
+  <div class="chips" id="typChips"></div>
+  <select id="tagSel" aria-label="Thema"><option value="">Alle Themen</option></select>
+  <select id="lvlSel" aria-label="Level"><option value="">Alle Level</option><option>Einstieg</option><option>Fortgeschritten</option></select>
+</section>
+
+<main>
+  <div class="count" id="count"></div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>Tech-Snack · eine Videoreihe von ifm</footer>
+
+<div class="overlay" id="videoOv" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="player" id="player"></div>
+    <div class="mbody">
+      <button class="x" id="closeVideo" aria-label="Schließen">×</button>
+      <div class="meta" id="mMeta"></div>
+      <h2 id="mTitle"></h2>
+      <p id="mDesc"></p>
+      <div class="tags" id="mTags"></div>
+      <div class="mrow">
+        <a class="btn btn-brand" id="mOpen" target="_blank" rel="noopener" style="text-decoration:none">Bei TechSmith öffnen</a>
+        <button class="btn" id="mCopy" style="background:var(--bg)">Link kopieren</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="loginOv" role="dialog" aria-modal="true">
+  <form class="modal login" id="loginForm">
+    <button type="button" class="x" id="closeLogin" aria-label="Schließen">×</button>
+    <h2>Mitarbeiter-Login</h2>
+    <p style="margin:0;color:var(--muted);font-size:14px">Mit dem Passwort werden zusätzlich die internen Tech-Snacks angezeigt.</p>
+    <input type="password" id="pw" placeholder="Passwort" autocomplete="current-password" required>
+    <div class="err" id="err"></div>
+    <button class="btn btn-brand" style="width:100%" type="submit">Anmelden</button>
+  </form>
+</div>
+
+<script>
+(() => {
+  const TYPEN = ['Alle', 'Produkt', 'Lösung', 'Überblick'];
+  const NEU_TAGE = 30;
+  let pub = [], intern = [], typ = 'Alle', current = null;
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const store = { get(k){try{return sessionStorage.getItem(k)}catch{return null}}, set(k,v){try{sessionStorage.setItem(k,v)}catch{}}, del(k){try{sessionStorage.removeItem(k)}catch{}} };
+
+  const all = () => [...intern.map(v => ({...v, intern:true})), ...pub].sort((a,b) => (b.datum||'').localeCompare(a.datum||''));
+  const isNew = (d) => d && (Date.now() - new Date(d).getTime()) / 864e5 <= NEU_TAGE;
+  const fmtDate = (d) => d ? new Date(d).toLocaleDateString('de-DE') : '';
+
+  function renderFilters() {
+    $('typChips').innerHTML = TYPEN.map(t => `<button class="chip ${t===typ?'on':''}" data-t="${esc(t)}">${esc(t)}</button>`).join('');
+    const tags = [...new Set(all().flatMap(v => v.tags || []))].sort((a,b)=>a.localeCompare(b,'de'));
+    const sel = $('tagSel').value;
+    $('tagSel').innerHTML = '<option value="">Alle Themen</option>' + tags.map(t => `<option ${t===sel?'selected':''}>${esc(t)}</option>`).join('');
+  }
+
+  function render() {
+    const q = $('q').value.trim().toLowerCase(), tag = $('tagSel').value, lvl = $('lvlSel').value;
+    const list = all().filter(v =>
+      (typ === 'Alle' || v.typ === typ) &&
+      (!tag || (v.tags||[]).includes(tag)) &&
+      (!lvl || v.level === lvl) &&
+      (!q || [v.titel, v.beschreibung, v.typ, ...(v.tags||[])].join(' ').toLowerCase().includes(q)));
+    $('count').textContent = `${list.length} ${list.length === 1 ? 'Video' : 'Videos'}` + (intern.length ? ' · inkl. interner Inhalte' : '');
+    $('grid').innerHTML = list.length ? list.map(v => `
+      <article class="card" tabindex="0" data-id="${esc(v.id)}">
+        <div class="thumb">
+          ${v.thumb ? `<img src="${esc(v.thumb)}" alt="" loading="lazy">` : ''}
+          <div class="badges">${isNew(v.datum)?'<span class="badge b-new">Neu</span>':''}${v.intern?'<span class="badge b-int">Intern</span>':''}</div>
+          <div class="play"></div>
+          ${v.dauer ? `<span class="dur">${esc(v.dauer)}</span>` : ''}
+        </div>
+        <div class="body">
+          <div class="meta"><span class="typ">${esc(v.typ)}</span><span>${esc(v.level||'')}</span><span>${fmtDate(v.datum)}</span></div>
+          <h3>${esc(v.titel)}</h3>
+          <p>${esc(v.beschreibung)}</p>
+          <div class="tags">${(v.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+        </div>
+      </article>`).join('') : '<div class="empty">Keine Videos gefunden. Filter zurücksetzen?</div>';
+  }
+
+  function openVideo(id) {
+    const v = all().find(x => x.id === id);
+    if (!v) return;
+    current = v;
+    $('player').innerHTML = v.embedUrl
+      ? `<iframe src="${esc(v.embedUrl)}" allow="autoplay; fullscreen" allowfullscreen title="${esc(v.titel)}"></iframe>`
+      : '<div style="padding:20px">Hier erscheint der TechSmith-Player,<br>sobald in der Liste eine <b>embedUrl</b> eingetragen ist.</div>';
+    $('mMeta').innerHTML = `<span class="typ">${esc(v.typ)}</span><span>${esc(v.level||'')}</span><span>${esc(v.dauer||'')}</span><span>${fmtDate(v.datum)}</span>${v.intern?'<span class="badge b-int">Intern</span>':''}`;
+    $('mTitle').textContent = v.titel;
+    $('mDesc').textContent = v.beschreibung || '';
+    $('mTags').innerHTML = (v.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+    $('mOpen').style.display = v.url ? '' : 'none';
+    $('mOpen').href = v.url || '#';
+    $('videoOv').classList.add('show');
+    if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
+  }
+  function closeVideo() {
+    $('videoOv').classList.remove('show');
+    $('player').innerHTML = '';
+    current = null;
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+
+  // ---- interner Bereich: Entschlüsselung im Browser ----
+  const b64 = (s) => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  async function unlock(password) {
+    const res = await fetch('internal.enc.json', {cache:'no-store'});
+    if (!res.ok) throw new Error('Keine internen Inhalte gefunden.');
+    const e = await res.json();
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({name:'PBKDF2', salt:b64(e.salt), iterations:e.iter, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['decrypt']);
+    let plain;
+    try { plain = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64(e.iv)}, key, b64(e.data)); }
+    catch { throw new Error('Passwort falsch.'); }
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+  function setLoggedIn(on) {
+    $('loginBtn').textContent = on ? 'Abmelden' : 'Mitarbeiter-Login';
+  }
+
+  $('loginBtn').onclick = () => {
+    if (intern.length) { intern = []; store.del('ts_pw'); setLoggedIn(false); renderFilters(); render(); return; }
+    $('err').textContent = ''; $('pw').value = '';
+    $('loginOv').classList.add('show'); setTimeout(() => $('pw').focus(), 50);
+  };
+  $('closeLogin').onclick = () => $('loginOv').classList.remove('show');
+  $('loginForm').onsubmit = async (ev) => {
+    ev.preventDefault();
+    $('err').textContent = 'Prüfe …';
+    try {
+      intern = await unlock($('pw').value);
+      store.set('ts_pw', $('pw').value);
+      $('loginOv').classList.remove('show');
+      setLoggedIn(true); renderFilters(); render();
+    } catch (e) { $('err').textContent = e.message; }
+  };
+
+  // ---- Events ----
+  $('q').oninput = render; $('tagSel').onchange = render; $('lvlSel').onchange = render;
+  $('typChips').onclick = (e) => { const b = e.target.closest('.chip'); if (!b) return; typ = b.dataset.t; renderFilters(); render(); };
+  $('grid').onclick = (e) => { const c = e.target.closest('.card'); if (c) openVideo(c.dataset.id); };
+  $('grid').onkeydown = (e) => { if (e.key === 'Enter') { const c = e.target.closest('.card'); if (c) openVideo(c.dataset.id); } };
+  $('closeVideo').onclick = closeVideo;
+  $('videoOv').onclick = (e) => { if (e.target.id === 'videoOv') closeVideo(); };
+  $('loginOv').onclick = (e) => { if (e.target.id === 'loginOv') $('loginOv').classList.remove('show'); };
+  document.onkeydown = (e) => { if (e.key === 'Escape') { closeVideo(); $('loginOv').classList.remove('show'); } };
+  $('mCopy').onclick = async () => {
+    const link = location.href.split('#')[0] + '#' + current.id;
+    try { await navigator.clipboard.writeText(link); $('mCopy').textContent = 'Kopiert ✓'; }
+    catch { $('mCopy').textContent = link; }
+    setTimeout(() => $('mCopy').textContent = 'Link kopieren', 2500);
+  };
+  window.addEventListener('hashchange', () => { const id = location.hash.slice(1); if (id) openVideo(id); });
+
+  // ---- Start ----
+  (async () => {
+    try { pub = await (await fetch('videos.json', {cache:'no-store'})).json(); }
+    catch { $('grid').innerHTML = '<div class="empty">videos.json konnte nicht geladen werden.</div>'; }
+    const saved = store.get('ts_pw');
+    if (saved) { try { intern = await unlock(saved); setLoggedIn(true); } catch { store.del('ts_pw'); } }
+    renderFilters(); render();
+    const id = location.hash.slice(1); if (id) openVideo(id);
+  })();
+})();
+</script>
+</body>
+</html>
